@@ -1,0 +1,6 @@
+{
+  "name": "Viessmann GridX Home Assistant Integration",
+  "content_in_root": false,
+  "filename": "custom_components/gridx/manifest.json",
+  "domain": "gridx"
+}
