@@ -1,5 +1,5 @@
 {
-  "name": "Viessmann GridX Home Assistant Integration",
+  "name": "EON (Viessmann) GridBox Integration",
   "content_in_root": false,
   "filename": "custom_components/gridx/manifest.json",
   "domain": "gridx"
