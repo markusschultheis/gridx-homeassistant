@@ -2,7 +2,7 @@
 **Not an official Viessmann/ EON Integration**
 
 ## Integration
-### [Viessmann PV-Anlage](./gridx)
+### [Viessmann PV-Anlage](./gridx-homeassistant)
 # Setup
 Im Haushalt ist ein Viessmann Wechselrichter, sowie eine Luftwaermepumpe installiert. Diese Geraete sind mit einer GridX-Box verbunden. 
 
