@@ -1,9 +1,7 @@
 # Home Assistant Viessmann Gridbox Integration works with EON
 **Not an official Viessmann/ EON Integration**
 
-## Integration
-### [Viessmann PV-Anlage](./gridx-homeassistant)
-# Setup
+# Konkretes Anwendungsbeispiel
 Im Haushalt ist ein Viessmann Wechselrichter, sowie eine Luftwaermepumpe installiert. Diese Geraete sind mit einer GridX-Box verbunden. 
 
 # Viessmann GridX Integration: Was macht die Integration?
