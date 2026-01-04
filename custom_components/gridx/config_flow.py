@@ -27,7 +27,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 # Test authentication
                 await api.authenticate()
-                return self.async_create_entry(title="GridX PV System", data=user_input)
+                return self.async_create_entry(title="GridX-Box Data Collector", data=user_input)
             except Exception as err:
                 _LOGGER.error("Authentication failed: %s", err)
                 errors["base"] = "auth_failed"

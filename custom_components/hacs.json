@@ -1,5 +1,5 @@
 {
-  "name": "EON (Viessmann) GridBox Integration",
+  "name": "EON (Viessmann) GridXBox Integration",
   "content_in_root": false,
   "filename": "custom_components/gridx/manifest.json",
   "domain": "gridx"

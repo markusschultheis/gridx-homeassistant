@@ -1,16 +1,13 @@
 """Calculated sensor entities for GridX integration."""
-import logging
 from typing import Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 from homeassistant.components.sensor import SensorEntity, SensorStateClass, SensorDeviceClass, RestoreSensor
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.core import callback
 from .const import DOMAIN
-from .helpers import extract_nested_value, safe_divide
-
-_LOGGER = logging.getLogger(__name__)
+from .helpers import extract_nested_value
 
 
 class GridXCalculatedSensor(CoordinatorEntity, SensorEntity):
@@ -251,7 +248,6 @@ class BatteryChargeSensor(PeriodEnergySensor):
             period=period,
             device_class=SensorDeviceClass.ENERGY,
         )
-        self._last_power = 0.0
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -315,7 +311,6 @@ class GridImportSensor(PeriodEnergySensor):
             period=period,
             device_class=SensorDeviceClass.ENERGY,
         )
-        self._last_reading = None
 
     @callback
     def _handle_coordinator_update(self) -> None:

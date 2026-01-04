@@ -30,6 +30,20 @@ class GridXCoordinator(DataUpdateCoordinator):
             _LOGGER.debug("GridXCoordinator fetching live data")
             data = await self.api.get_live_data()
             _LOGGER.debug("GridXCoordinator received data keys: %s", list(data.keys()) if isinstance(data, dict) else type(data))
+
+            if isinstance(data, dict):
+                raw_rate = data.get("selfSufficiencyRate")
+                raw_self_consumption = data.get("selfConsumption")
+                raw_production = data.get("production")
+                raw_consumption = data.get("consumption")
+                _LOGGER.debug(
+                    "GridXCoordinator raw values: selfSufficiencyRate=%r selfConsumption=%r production=%r consumption=%r",
+                    raw_rate,
+                    raw_self_consumption,
+                    raw_production,
+                    raw_consumption,
+                )
+
             return data
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
