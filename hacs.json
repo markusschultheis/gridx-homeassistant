@@ -2,5 +2,7 @@
   "name": "EON (Viessmann) GridXBox Integration",
   "content_in_root": false,
   "filename": "custom_components/gridx/manifest.json",
-  "domain": "gridx"
+  "country": "NO",
+  "homeassistant": "2026.01.01",
+  "persistent_directory": "userfiles"
 }
