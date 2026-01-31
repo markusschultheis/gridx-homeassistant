@@ -1,5 +1,6 @@
 # Home Assistant Viessmann Gridbox Integration works with EON
 **Not an official Viessmann/ EON Integration**
+https://my.home-assistant.io/redirect/config_flow_start/?domain=knx
 
 # Konkretes Anwendungsbeispiel
 Im Haushalt ist ein Viessmann Wechselrichter, sowie eine Luftwaermepumpe installiert. Diese Geraete sind mit einer GridX-Box verbunden. 
