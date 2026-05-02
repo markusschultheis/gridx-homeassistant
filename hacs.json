@@ -3,6 +3,6 @@
   "content_in_root": false,
   "filename": "custom_components/gridx/manifest.json",
   "country": "NO",
-  "homeassistant": "2026.01.01",
+  "homeassistant": "2026.4.4",
   "persistent_directory": "userfiles"
 }
