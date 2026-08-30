@@ -1,14 +1,25 @@
-from homeassistant import config_entries
-import voluptuous as vol
 import logging
-from .const import DOMAIN, CONF_CLIENT_ID, CONF_REALM, CONF_AUDIENCE
+
+import voluptuous as vol
+from homeassistant import config_entries
+
+from .const import (
+    CONF_AUDIENCE,
+    CONF_CLIENT_ID,
+    CONF_REALM,
+    DEFAULT_AUDIENCE,
+    DEFAULT_CLIENT_ID,
+    DEFAULT_REALM,
+    DOMAIN,
+)
 from .gridx_api import GridXAPI
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for GridX PV system."""
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -35,9 +46,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = vol.Schema({
             vol.Required("username"): str,
             vol.Required("password"): str,
-            vol.Required(CONF_CLIENT_ID, default="mG0Phmo7DmnvAqO7p6B0WOYBODppY3cc"): str,
-            vol.Required(CONF_REALM, default="eon-home-authentication-db"): str,
-            vol.Required(CONF_AUDIENCE, default="my.gridx"): str,
+            vol.Required(CONF_CLIENT_ID, default=DEFAULT_CLIENT_ID): str,
+            vol.Required(CONF_REALM, default=DEFAULT_REALM): str,
+            vol.Required(CONF_AUDIENCE, default=DEFAULT_AUDIENCE): str,
         })
 
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)

@@ -9,6 +9,17 @@ Im Haushalt ist ein Viessmann Wechselrichter, sowie eine Luftwaermepumpe install
 # Viessmann GridX Integration: Was macht die Integration?
 Diese Integration ruft die PV-Anlagendaten ueber die GridX-API ab. Die Anlagedaten werden dann in Home Assistant zur weiteren Ver-/Bearbeitung zur Verfuegung gestellt. 
 
+## Authentifizierung
+
+Die Integration verwendet den aktuellen E.ON-Home-/gridX-Auth0-Flow. Seit der
+Umstellung des Webportals wird der Token fuer die Audience
+`https://api.gridx.de` angefordert und der `access_token` als Bearer-Token
+verwendet. Refresh-Tokens werden automatisch erneuert. Bestehende Eintraege
+mit der frueheren Audience `my.gridx` werden beim Update automatisch migriert.
+Der Password-Realm-Grant, die E.ON-Client-ID und der Realm selbst sind
+unveraendert. Stand der Pruefung: 30. August 2026, anhand der oeffentlichen
+Konfiguration unter <https://homeone.gridx.de/>.
+
 ## Energiewende im Eigenheim
 ### Photovoltaik und Wärmepumpen als Dream-Team
 Die Energiewende findet längst nicht mehr nur in der Politik statt, sondern in Millionen von
@@ -48,4 +59,3 @@ seine Energie dort, wo sie am meisten bringt: im eigenen Zuhause.
 
 ## Beispiel der Visualisierung in Grafana
 <img width="2258" height="1146" alt="image" src="https://github.com/user-attachments/assets/007a8005-7844-4d54-9f2f-74a7f563475e" />
-

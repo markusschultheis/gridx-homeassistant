@@ -3,10 +3,11 @@ from datetime import timedelta
 import logging
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
-from .gridx_api import GridXAPI
+from .gridx_api import GridXAPI, GridXAuthenticationError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,5 +46,7 @@ class GridXCoordinator(DataUpdateCoordinator):
                 )
 
             return data
+        except GridXAuthenticationError as err:
+            raise ConfigEntryAuthFailed("GridX authentication failed") from err
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+            raise UpdateFailed(f"Error communicating with API: {err}") from err

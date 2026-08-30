@@ -1,36 +1,49 @@
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 import logging
 
-from .const import DOMAIN, DATA_EXPIRES_AT, DATA_ID_TOKEN
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
+
+from .const import (
+    CONF_AUDIENCE,
+    CONF_CLIENT_ID,
+    CONF_REALM,
+    DEFAULT_AUDIENCE,
+    DEFAULT_CLIENT_ID,
+    DEFAULT_REALM,
+    DOMAIN,
+    LEGACY_AUDIENCE,
+)
 from .coordinator import GridXCoordinator
-from .gridx_api import GridXAPI
+from .gridx_api import GridXAPI, GridXAuthenticationError
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GridX integration from a config entry."""
     # Initialize data storage
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN].setdefault(DATA_EXPIRES_AT, 0)
-    hass.data[DOMAIN].setdefault(DATA_ID_TOKEN, None)
 
     # Create API client
     api = GridXAPI(
         hass,
         entry.data["username"],
         entry.data["password"],
-        entry.data["client_id"],
-        entry.data["realm"],
-        entry.data["audience"],
+        entry.data.get(CONF_CLIENT_ID, DEFAULT_CLIENT_ID),
+        entry.data.get(CONF_REALM, DEFAULT_REALM),
+        entry.data.get(CONF_AUDIENCE, DEFAULT_AUDIENCE),
     )
 
     # Authenticate and get gateway ID before creating coordinator
-    await api.authenticate()
-    await api.get_gateway_id()
+    try:
+        await api.authenticate()
+        await api.get_gateway_id()
+    except GridXAuthenticationError as err:
+        raise ConfigEntryAuthFailed("GridX authentication failed") from err
     _LOGGER.debug("GridX API authenticated, gateway_id: %s", api.gateway_id)
 
     # Create coordinator
@@ -43,6 +56,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Forward sensor setup
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate legacy Auth0 audience settings to the gridX API audience."""
+    if entry.version > 2:
+        return False
+
+    if entry.version < 2:
+        data = dict(entry.data)
+        if data.get(CONF_AUDIENCE) in (None, LEGACY_AUDIENCE):
+            data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
+        data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
+        data.setdefault(CONF_REALM, DEFAULT_REALM)
+        hass.config_entries.async_update_entry(entry, data=data, version=2)
 
     return True
 
