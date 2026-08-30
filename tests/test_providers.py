@@ -42,11 +42,13 @@ class ProviderRegistryTests(unittest.TestCase):
                 profile = providers.get_provider(key)
                 self.assertIsNotNone(profile)
                 self.assertFalse(profile.legacy)
+                self.assertEqual(profile.audience, "my.gridx")
 
     def test_retired_viessmann_realm_is_not_offered_for_new_setup(self):
         profile = providers.get_provider("viessmann")
         self.assertIsNotNone(profile)
         self.assertTrue(profile.legacy)
+        self.assertEqual(profile.audience, "my.gridx")
         self.assertNotIn("viessmann", providers.provider_choices())
 
     def test_legacy_eon_auth_is_mapped_to_provider(self):
