@@ -2,6 +2,12 @@ import logging
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .const import (
     CONF_AUDIENCE,
@@ -15,6 +21,18 @@ from .gridx_api import GridXAPI
 from .providers import CUSTOM_PROVIDER, DEFAULT_PROVIDER, get_provider, provider_choices
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _provider_selector() -> SelectSelector:
+    """Return a labelled dropdown for all active gridX OEM profiles."""
+
+    options = [
+        SelectOptionDict(value=key, label=label)
+        for key, label in provider_choices().items()
+    ]
+    return SelectSelector(
+        SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN)
+    )
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -83,7 +101,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_PROVIDER, default=DEFAULT_PROVIDER): vol.In(provider_choices()),
+                vol.Required(CONF_PROVIDER, default=DEFAULT_PROVIDER): _provider_selector(),
                 vol.Required("username"): str,
                 vol.Required("password"): str,
             }
