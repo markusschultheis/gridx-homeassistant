@@ -2,6 +2,8 @@
 
 from typing import Any, Dict
 
+WATT_SECONDS_PER_WATT_HOUR = 3600
+
 
 def extract_nested_value(data: Dict[str, Any], key_path: str) -> Any:
     """
@@ -33,4 +35,23 @@ def extract_nested_value(data: Dict[str, Any], key_path: str) -> Any:
         else:
             return None
             
+    return value
+
+
+def normalize_sensor_value(key_path: str, value: Any) -> Any:
+    """Normalize raw gridX values to the unit exposed by Home Assistant."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return value
+
+    normalized_key = key_path.lower().replace("_", "")
+
+    # The gridX API documents all *MeterReading* fields in watt-seconds (Ws).
+    # Home Assistant exposes these cumulative energy readings in watt-hours.
+    if "meterreading" in normalized_key:
+        return value / WATT_SECONDS_PER_WATT_HOUR
+
+    # Rate fields have historically been returned as either 0..1 or 0..100.
+    if normalized_key.endswith("rate") and 0.0 <= value <= 1.0:
+        return value * 100
+
     return value

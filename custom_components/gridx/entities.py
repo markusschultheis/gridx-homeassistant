@@ -1,14 +1,29 @@
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from typing import Any, Optional
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import DOMAIN
-from typing import Any, Optional
+from .helpers import normalize_sensor_value
 
 
 class GridXSensor(CoordinatorEntity, SensorEntity):
     """Representation of a GridX sensor."""
 
-    def __init__(self, coordinator: Any, name: str, unit: Optional[str], key: str, unique_id: str, device_class: Optional[SensorDeviceClass]) -> None:
+    def __init__(
+        self,
+        coordinator: Any,
+        name: str,
+        unit: Optional[str],
+        key: str,
+        unique_id: str,
+        device_class: Optional[SensorDeviceClass],
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._key = key
@@ -16,6 +31,9 @@ class GridXSensor(CoordinatorEntity, SensorEntity):
         self._device_class = device_class
         self._attr_native_unit_of_measurement = unit
         self._attr_name = name  # For entity registry support and user renaming
+
+        if "meterreading" in key.lower().replace("_", ""):
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         
         # Set device info once with the gateway_id from coordinator
         self._attr_device_info = DeviceInfo(
@@ -64,10 +82,4 @@ class GridXSensor(CoordinatorEntity, SensorEntity):
             else:
                 return None
 
-        # Normalize rate fields (API may send either 0..1 or 0..100)
-        if isinstance(value, (int, float)):
-            key_lower = self._key.lower().replace("_", "")
-            if key_lower.endswith("rate") and 0.0 <= value <= 1.0:
-                return value * 100
-
-        return value
+        return normalize_sensor_value(self._key, value)

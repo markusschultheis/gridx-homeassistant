@@ -20,6 +20,12 @@ Der Password-Realm-Grant, die E.ON-Client-ID und der Realm selbst sind
 unveraendert. Stand der Pruefung: 30. August 2026, anhand der oeffentlichen
 Konfiguration unter <https://homeone.gridx.de/>.
 
+## Energiezaehler
+
+gridX liefert die kumulativen `*MeterReading*`-Felder in Wattsekunden (`Ws`).
+Die Integration rechnet diese Werte durch Division durch 3.600 in Wattstunden
+(`Wh`) um und stellt sie Home Assistant als fortlaufende Gesamtzaehler bereit.
+
 ## Energiewende im Eigenheim
 ### Photovoltaik und Wärmepumpen als Dream-Team
 Die Energiewende findet längst nicht mehr nur in der Politik statt, sondern in Millionen von
