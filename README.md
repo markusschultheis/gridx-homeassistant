@@ -18,7 +18,7 @@ verwendet. Refresh-Tokens werden automatisch erneuert. Bestehende Eintraege
 mit der frueheren Audience `my.gridx` werden beim Update automatisch migriert.
 Der Password-Realm-Grant, die E.ON-Client-ID und der Realm selbst sind
 unveraendert. Stand der Pruefung: 30. August 2026, anhand der oeffentlichen
-Konfiguration unter <https://homeone.gridx.de/>.
+Konfiguration unter <https://homeone.gridx.de/> (Thx alexmsenger).  
 
 ## Energiezaehler
 
