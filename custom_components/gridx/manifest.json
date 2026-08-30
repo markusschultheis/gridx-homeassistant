@@ -1,7 +1,7 @@
 {
     "domain": "gridx",
     "name": "EON (Viessmann) PV-Anlagendaten (VitoCharge VX3) GridX",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "documentation": "https://github.com/markusschultheis/gridx-homeassistant/custom_components/gridx",
     "issue_tracker": "https://github.com/markusschultheis/gridx-homeassistant/custom_components/gridx/issues",
     "dependencies": [],
