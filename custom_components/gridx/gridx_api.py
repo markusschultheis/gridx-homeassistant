@@ -1,4 +1,4 @@
-"""Async client for the E.ON Home/gridX cloud API."""
+"""Async client for gridX-backed OEM cloud APIs."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from .const import (
     DEFAULT_AUDIENCE,
     GATEWAYS_URL,
     GRANT_TYPE,
-    LEGACY_AUDIENCE,
     LIVE_URL,
     REFRESH_GRANT_TYPE,
     TOKEN_EXPIRATION_OFFSET,
@@ -29,7 +28,7 @@ class GridXAuthenticationError(Exception):
 
 
 class GridXAPI:
-    """API client for E.ON Home/gridX PV systems."""
+    """API client for gridX-backed OEM energy systems."""
 
     def __init__(self, hass, username, password, client_id, realm, audience):
         """Initialize the gridX API client."""
@@ -38,10 +37,10 @@ class GridXAPI:
         self.password = password
         self.client_id = client_id
         self.realm = realm
-        # Normalize legacy config entries even before Home Assistant migration runs.
-        self.audience = (
-            DEFAULT_AUDIENCE if audience in (None, "", LEGACY_AUDIENCE) else audience
-        )
+        # Audience is provider-specific. E.ON Home currently uses the API
+        # audience while other public OEM profiles are still evidenced with
+        # the historical `my.gridx` audience and an id_token bearer.
+        self.audience = audience or DEFAULT_AUDIENCE
         self.gateway_id: str | None = None
         self.access_token: str | None = None
         self.id_token: str | None = None
@@ -51,13 +50,20 @@ class GridXAPI:
 
     @property
     def token_valid(self) -> bool:
-        """Return whether the current API access token is still valid."""
+        """Return whether the current API bearer token is still valid."""
         return bool(self.bearer_token) and time.monotonic() < self._token_expires_at
 
     @property
     def bearer_token(self) -> str | None:
-        """Return the API bearer token, preferring the OAuth access token."""
-        return self.access_token or self.id_token
+        """Return the bearer token appropriate for the configured audience."""
+        if self.audience == DEFAULT_AUDIENCE:
+            return self.access_token or self.id_token
+        return self.id_token or self.access_token
+
+    @property
+    def preferred_token_field(self) -> str:
+        """Return the token field expected for the configured audience."""
+        return "access_token" if self.audience == DEFAULT_AUDIENCE else "id_token"
 
     def _store_token_response(
         self, data: dict[str, Any], *, preserve_refresh_token: bool = False
@@ -66,18 +72,23 @@ class GridXAPI:
         access_token = data.get("access_token")
         id_token = data.get("id_token")
 
-        # The current gridX API expects access_token. The id_token fallback keeps
-        # the adapter usable during a staged rollout or with a legacy OEM tenant.
         if not isinstance(access_token, str) or not access_token:
-            if not isinstance(id_token, str) or not id_token:
-                raise GridXAuthenticationError(
-                    "Authentication response did not contain a token"
-                )
-            _LOGGER.warning(
-                "Auth0 response did not contain an access_token; using legacy "
-                "id_token compatibility mode"
-            )
             access_token = None
+        if not isinstance(id_token, str) or not id_token:
+            id_token = None
+        if access_token is None and id_token is None:
+            raise GridXAuthenticationError(
+                "Authentication response did not contain a usable token"
+            )
+
+        preferred = access_token if self.preferred_token_field == "access_token" else id_token
+        if preferred is None:
+            _LOGGER.warning(
+                "Auth0 response did not contain preferred %s for audience %s; "
+                "using compatibility bearer token",
+                self.preferred_token_field,
+                self.audience,
+            )
 
         expires_in = data.get("expires_in", 3600)
         try:
@@ -91,7 +102,7 @@ class GridXAPI:
             refresh_token = self.refresh_token if preserve_refresh_token else None
 
         self.access_token = access_token
-        self.id_token = id_token if isinstance(id_token, str) else None
+        self.id_token = id_token
         self.refresh_token = refresh_token
         self._token_expires_at = time.monotonic() + max(
             1, expires_in - refresh_offset
@@ -140,10 +151,14 @@ class GridXAPI:
             }
             data = await self._request_token(payload)
             self._store_token_response(data)
-            _LOGGER.debug("GridX authentication succeeded")
+            _LOGGER.debug(
+                "gridX authentication succeeded for audience=%s token=%s",
+                self.audience,
+                self.preferred_token_field,
+            )
 
     async def _refresh_access_token(self) -> None:
-        """Exchange the refresh token for a new gridX API access token."""
+        """Exchange the refresh token for a new gridX bearer token."""
         async with self._auth_lock:
             if self.token_valid:
                 return
@@ -163,10 +178,10 @@ class GridXAPI:
                 self.refresh_token = None
                 raise
             self._store_token_response(data, preserve_refresh_token=True)
-            _LOGGER.debug("GridX access token refreshed")
+            _LOGGER.debug("gridX bearer token refreshed")
 
     async def _ensure_token(self) -> None:
-        """Ensure that a usable access token is available."""
+        """Ensure that a usable bearer token is available."""
         if self.token_valid:
             return
 
@@ -176,7 +191,7 @@ class GridXAPI:
                 return
             except (GridXAuthenticationError, aiohttp.ClientError) as err:
                 _LOGGER.debug(
-                    "GridX token refresh failed; falling back to password login: %s",
+                    "gridX token refresh failed; falling back to password login: %s",
                     err,
                 )
                 self.refresh_token = None
@@ -200,17 +215,17 @@ class GridXAPI:
                                 self._token_expires_at = 0.0
                                 continue
                             raise GridXAuthenticationError(
-                                "GridX rejected the refreshed access token"
+                                "gridX rejected the refreshed bearer token"
                             )
                         response.raise_for_status()
                         return await response.json()
             except GridXAuthenticationError:
                 raise
             except aiohttp.ClientError as err:
-                _LOGGER.error("GridX API request failed: %s", err)
+                _LOGGER.error("gridX API request failed: %s", err)
                 raise
 
-        raise GridXAuthenticationError("GridX authentication failed")
+        raise GridXAuthenticationError("gridX authentication failed")
 
     async def get_gateway_id(self) -> str:
         """Retrieve the first gateway's system ID from the gridX API."""
