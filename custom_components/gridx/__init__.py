@@ -26,19 +26,16 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 def _resolved_auth(data) -> tuple[str, str, str]:
-    """Resolve provider-managed Auth0 values while preserving custom legacy entries."""
+    """Resolve provider-managed Auth0 values while preserving custom entries."""
 
     provider = get_provider(data.get(CONF_PROVIDER))
     if provider is not None:
         return provider.client_id, provider.realm, provider.audience
 
-    audience = data.get(CONF_AUDIENCE, DEFAULT_AUDIENCE)
-    if audience in (None, "", LEGACY_AUDIENCE):
-        audience = DEFAULT_AUDIENCE
     return (
         data.get(CONF_CLIENT_ID, DEFAULT_CLIENT_ID),
         data.get(CONF_REALM, DEFAULT_REALM),
-        audience,
+        data.get(CONF_AUDIENCE) or DEFAULT_AUDIENCE,
     )
 
 
@@ -83,31 +80,36 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if entry.version > 3:
         return False
+    if entry.version == 3:
+        return True
 
     data = dict(entry.data)
-    changed = False
+    data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
+    data.setdefault(CONF_REALM, DEFAULT_REALM)
 
-    if entry.version < 2:
-        if data.get(CONF_AUDIENCE) in (None, LEGACY_AUDIENCE):
+    provider_key = data.get(CONF_PROVIDER) or provider_from_auth(
+        data.get(CONF_CLIENT_ID), data.get(CONF_REALM)
+    )
+    provider = get_provider(provider_key)
+    data[CONF_PROVIDER] = provider_key
+
+    audience = data.get(CONF_AUDIENCE)
+    if provider_key == "eon_home":
+        # The old integration was E.ON-centric and migrated `my.gridx` to the
+        # current API audience. Keep that proven behavior for E.ON only.
+        if audience in (None, "", LEGACY_AUDIENCE):
             data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
-        data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
-        data.setdefault(CONF_REALM, DEFAULT_REALM)
-        changed = True
+    elif provider is not None:
+        # Known non-E.ON OEM profiles use their registry-authored audience.
+        # Runtime also resolves from the registry, so stale stored values cannot
+        # silently force an E.ON-specific token mode onto another provider.
+        data[CONF_AUDIENCE] = provider.audience
+    elif audience in (None, ""):
+        # Unknown/custom historical entries retain any explicit audience. Only
+        # a truly absent value receives the current integration default.
+        data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
 
-    if entry.version < 3:
-        data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
-        data.setdefault(CONF_REALM, DEFAULT_REALM)
-        if data.get(CONF_AUDIENCE) in (None, "", LEGACY_AUDIENCE):
-            data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
-        data.setdefault(
-            CONF_PROVIDER,
-            provider_from_auth(data.get(CONF_CLIENT_ID), data.get(CONF_REALM)),
-        )
-        changed = True
-
-    if changed:
-        hass.config_entries.async_update_entry(entry, data=data, version=3)
-
+    hass.config_entries.async_update_entry(entry, data=data, version=3)
     return True
 
 
