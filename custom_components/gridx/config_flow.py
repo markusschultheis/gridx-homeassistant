@@ -58,19 +58,19 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await api.get_gateway_id()
 
     async def _create_validated_entry(self, data: dict):
-        errors = {}
+        """Return ``(flow_result, errors)`` after a read-only account validation."""
+
         try:
             system_id = await self._validate(data)
         except Exception as err:
             _LOGGER.error("gridX authentication/validation failed: %s", err)
-            errors["base"] = "auth_failed"
-        else:
-            await self.async_set_unique_id(system_id)
-            self._abort_if_unique_id_configured()
-            provider = get_provider(data.get(CONF_PROVIDER))
-            title = provider.label if provider is not None else "gridX Energy Management"
-            return self.async_create_entry(title=title, data=data)
-        return errors
+            return None, {"base": "auth_failed"}
+
+        await self.async_set_unique_id(system_id)
+        self._abort_if_unique_id_configured()
+        provider = get_provider(data.get(CONF_PROVIDER))
+        title = provider.label if provider is not None else "gridX Energy Management"
+        return self.async_create_entry(title=title, data=data), {}
 
     async def async_step_user(self, user_input=None):
         """Select an OEM provider and enter account credentials."""
@@ -94,10 +94,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_REALM: provider.realm,
                 CONF_AUDIENCE: provider.audience,
             }
-            result = await self._create_validated_entry(data)
-            if not isinstance(result, dict):
+            result, errors = await self._create_validated_entry(data)
+            if result is not None:
                 return result
-            errors = result
 
         schema = vol.Schema(
             {
@@ -123,11 +122,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_REALM: user_input[CONF_REALM],
                 CONF_AUDIENCE: user_input[CONF_AUDIENCE],
             }
-            result = await self._create_validated_entry(data)
-            if not isinstance(result, dict):
+            result, errors = await self._create_validated_entry(data)
+            if result is not None:
                 self._pending_credentials = None
                 return result
-            errors = result
 
         schema = vol.Schema(
             {
