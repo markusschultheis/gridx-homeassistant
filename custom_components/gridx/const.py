@@ -10,7 +10,13 @@ CONF_AUDIENCE = "audience"
 DEFAULT_CLIENT_ID = "mG0Phmo7DmnvAqO7p6B0WOYBODppY3cc"
 DEFAULT_REALM = "eon-home-authentication-db"
 DEFAULT_AUDIENCE = "https://api.gridx.de"
-LEGACY_AUDIENCE = "my.gridx"
+
+# `my.gridx` is legacy for the migrated E.ON Home profile, but it is still the
+# audience used by the current public multi-OEM implementation in lackas/ha-gridx.
+# Keep the historical name as an alias because existing tests/config migration
+# code already imports it.
+GRIDX_ID_TOKEN_AUDIENCE = "my.gridx"
+LEGACY_AUDIENCE = GRIDX_ID_TOKEN_AUDIENCE
 
 AUTH_URL = "https://gridx.eu.auth0.com/oauth/token"
 GATEWAYS_URL = "https://api.gridx.de/gateways"
