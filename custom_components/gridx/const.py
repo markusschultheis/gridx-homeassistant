@@ -1,4 +1,5 @@
 DOMAIN = "gridx"
+PROJECT_URL = "https://github.com/markusschultheis/gridx-homeassistant"
 
 CONF_CLIENT_ID = "client_id"
 CONF_REALM = "realm"

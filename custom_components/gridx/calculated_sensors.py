@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.core import callback
-from .const import DOMAIN
+from .const import DOMAIN, PROJECT_URL
 from .helpers import extract_nested_value
 
 
@@ -36,6 +36,7 @@ class GridXCalculatedSensor(CoordinatorEntity, SensorEntity):
             name="GridX System",
             manufacturer="GridX",
             model="GridX Gateway",
+            configuration_url=PROJECT_URL,
         )
 
     @property
@@ -166,6 +167,7 @@ class PeriodEnergySensor(CoordinatorEntity, RestoreSensor):
             name="GridX System",
             manufacturer="GridX",
             model="GridX Gateway",
+            configuration_url=PROJECT_URL,
         )
 
     async def async_added_to_hass(self) -> None:

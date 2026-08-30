@@ -8,7 +8,7 @@ from homeassistant.components.sensor import (
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, PROJECT_URL
 from .helpers import normalize_sensor_value
 
 
@@ -41,6 +41,7 @@ class GridXSensor(CoordinatorEntity, SensorEntity):
             name="GridX API Connector",
             manufacturer="Markus Schultheis (c) 2024-2025",
             model="GridX-Box Data Collector",
+            configuration_url=PROJECT_URL,
         )
 
     @property
