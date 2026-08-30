@@ -1,10 +1,12 @@
 DOMAIN = "gridx"
 PROJECT_URL = "https://github.com/markusschultheis/gridx-homeassistant"
 
+CONF_PROVIDER = "provider"
 CONF_CLIENT_ID = "client_id"
 CONF_REALM = "realm"
 CONF_AUDIENCE = "audience"
 
+# Backward-compatible E.ON Home defaults for legacy entries without provider metadata.
 DEFAULT_CLIENT_ID = "mG0Phmo7DmnvAqO7p6B0WOYBODppY3cc"
 DEFAULT_REALM = "eon-home-authentication-db"
 DEFAULT_AUDIENCE = "https://api.gridx.de"
