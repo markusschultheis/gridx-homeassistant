@@ -76,16 +76,12 @@ def provider_from_auth(client_id: str | None, realm: str | None) -> str:
 
 
 def provider_choices() -> dict[str, str]:
-    """Return UI choices with active providers first and legacy/custom last."""
+    """Return providers offered for new setup plus an explicit custom option."""
 
     active = sorted(
         (provider for provider in PROVIDERS.values() if not provider.legacy),
         key=lambda provider: provider.label.casefold(),
     )
-    legacy = sorted(
-        (provider for provider in PROVIDERS.values() if provider.legacy),
-        key=lambda provider: provider.label.casefold(),
-    )
-    choices = {provider.key: provider.label for provider in (*active, *legacy)}
+    choices = {provider.key: provider.label for provider in active}
     choices[CUSTOM_PROVIDER] = "Benutzerdefiniertes gridX-Profil"
     return choices
