@@ -1,4 +1,4 @@
-"""Regression tests for the E.ON Home/gridX authentication flow."""
+"""Regression tests for provider-aware gridX authentication."""
 
 from __future__ import annotations
 
@@ -72,7 +72,7 @@ class FakeSession:
         return self.get_responses.pop(0)
 
 
-def make_api(audience="my.gridx"):
+def make_api(audience="https://api.gridx.de"):
     """Create an API instance with E.ON Home test credentials."""
     return GridXAPI(
         None,
@@ -85,9 +85,9 @@ def make_api(audience="my.gridx"):
 
 
 class GridXAuthenticationTests(IsolatedAsyncioTestCase):
-    """Verify current token acquisition and recovery behavior."""
+    """Verify provider-specific token acquisition and recovery behavior."""
 
-    async def test_login_migrates_audience_and_uses_access_token(self):
+    async def test_eon_api_audience_uses_access_token(self):
         session = FakeSession(
             post_responses=[
                 FakeResponse(
@@ -119,6 +119,32 @@ class GridXAuthenticationTests(IsolatedAsyncioTestCase):
             session.requests[1][2]["Authorization"], "Bearer api-access-token"
         )
 
+    async def test_multi_oem_audience_is_preserved_and_uses_id_token(self):
+        session = FakeSession(
+            post_responses=[
+                FakeResponse(
+                    200,
+                    {
+                        "access_token": "opaque-access-token",
+                        "id_token": "oem-identity-token",
+                        "refresh_token": "refresh-token",
+                        "expires_in": 3600,
+                    },
+                )
+            ],
+            get_responses=[FakeResponse(200, [{"system": {"id": "system-1"}}])],
+        )
+        api = make_api("my.gridx")
+
+        with patch.object(api_module.aiohttp, "ClientSession", return_value=session):
+            await api.authenticate()
+            await api.get_gateway_id()
+
+        self.assertEqual(session.requests[0][2]["audience"], "my.gridx")
+        self.assertEqual(
+            session.requests[1][2]["Authorization"], "Bearer oem-identity-token"
+        )
+
     async def test_expired_access_token_is_refreshed(self):
         session = FakeSession(
             post_responses=[
@@ -129,7 +155,7 @@ class GridXAuthenticationTests(IsolatedAsyncioTestCase):
             ],
             get_responses=[FakeResponse(200, [{"system": {"id": "system-1"}}])],
         )
-        api = make_api("https://api.gridx.de")
+        api = make_api()
         api.access_token = "expired-access-token"
         api.refresh_token = "refresh-token"
         api._token_expires_at = 0
@@ -158,7 +184,7 @@ class GridXAuthenticationTests(IsolatedAsyncioTestCase):
                 FakeResponse(200, [{"system": {"id": "system-1"}}]),
             ],
         )
-        api = make_api("https://api.gridx.de")
+        api = make_api()
         api.access_token = "rejected-access-token"
         api.refresh_token = "refresh-token"
         api._token_expires_at = float("inf")
@@ -190,7 +216,7 @@ class GridXAuthenticationTests(IsolatedAsyncioTestCase):
             ],
             get_responses=[FakeResponse(200, [{"system": {"id": "system-1"}}])],
         )
-        api = make_api("https://api.gridx.de")
+        api = make_api()
         api.access_token = "expired-access-token"
         api.refresh_token = "rejected-refresh-token"
         api._token_expires_at = 0
