@@ -12,7 +12,7 @@ Die ursprüngliche Referenzinstallation verwendet eine Viessmann VitoCharge VX3 
 
 ## Provider-Auswahl
 
-Bekannte gridX-OEMs teilen sich den Auth0-Tenant und das Backend `api.gridx.de`. Provider-spezifisch sind insbesondere `client_id` und `realm`. Bei der Einrichtung wird deshalb zuerst der Provider ausgewählt; die technischen Auth0-Werte werden automatisch aus dem Providerprofil übernommen.
+Bekannte gridX-OEMs teilen sich den Auth0-Tenant und das Backend `api.gridx.de`. Provider-spezifisch sind mindestens `client_id` und `realm`; zusätzlich verwaltet die Integration die aktuell belegte Audience-/Bearer-Variante je Provider. Bei der Einrichtung wird deshalb zuerst der Provider ausgewählt und der technische Authentifizierungsvertrag automatisch gesetzt.
 
 Unterstützte Profile umfassen unter anderem:
 
@@ -39,17 +39,21 @@ Das historische Viessmann-Auth0-Profil wird nur zur Migration bestehender Konfig
 
 ## Authentifizierung
 
-Die Integration verwendet den aktuellen gridX-Auth0-Flow:
+Gemeinsam für die bekannten Provider sind:
 
 - Token-Endpunkt: `https://gridx.eu.auth0.com/oauth/token`
 - API: `https://api.gridx.de`
-- Audience: `https://api.gridx.de`
 - Scope: `email openid offline_access`
 - Grant: Password Realm
 
-Der `access_token` wird bevorzugt als Bearer-Token verwendet. Falls ein Legacy-Tenant nur einen `id_token` liefert, bleibt dieser als Kompatibilitätsfallback erhalten. Refresh-Tokens werden automatisch erneuert; ein abgewiesener Token löst genau einen kontrollierten Authentifizierungs-Neuversuch aus.
+Die Tokenverwendung ist derzeit nicht für alle OEMs identisch belegt:
 
-Bestehende Version-1/2-Konfigurationen werden beim Update auf Config-Version 3 migriert. E.ON-Home-Standardwerte werden automatisch dem Provider `eon_home` zugeordnet. Nicht bekannte Kombinationen aus Client-ID und Realm werden als benutzerdefiniertes Profil erhalten und nicht stillschweigend auf E.ON umgestellt.
+- **E.ON Home Manager:** Audience `https://api.gridx.de`, bevorzugt `access_token`. Dieser Pfad ist im Referenzprojekt praktisch geprüft.
+- **Weitere öffentliche HomeOne-OEM-Profile:** Audience `my.gridx`, bevorzugt `id_token`. Diese Variante entspricht der aktuellen öffentlichen Multi-Provider-Implementierung von `lackas/ha-gridx`.
+
+Die Integration speichert beide Tokenarten, verwendet aber jeweils den zum Provider-/Audience-Vertrag passenden Bearer und besitzt einen Kompatibilitätsfallback, falls Auth0 nur die jeweils andere Tokenart liefert. Refresh-Tokens werden automatisch erneuert; ein abgewiesener Token löst genau einen kontrollierten Authentifizierungs-Neuversuch aus.
+
+Bestehende Version-1/2-Konfigurationen werden beim Update auf Config-Version 3 migriert. E.ON-Home-Standardwerte werden automatisch dem Provider `eon_home` zugeordnet und auf den aktuellen API-Audience-Pfad geführt. Bekannte andere OEM-Client-ID/Realm-Kombinationen erhalten ihr Providerprofil. Nicht bekannte Kombinationen bleiben als benutzerdefiniertes Profil erhalten; eine explizit gespeicherte Audience wird dabei nicht stillschweigend auf E.ON umgestellt.
 
 ## Installation mit HACS
 
