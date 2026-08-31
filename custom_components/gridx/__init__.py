@@ -8,12 +8,15 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from .const import (
     CONF_AUDIENCE,
     CONF_CLIENT_ID,
+    CONF_PROVIDER,
     CONF_REALM,
     DEFAULT_AUDIENCE,
     DEFAULT_CLIENT_ID,
     DEFAULT_REALM,
     DOMAIN,
     LEGACY_AUDIENCE,
+    PROVIDERS,
+    provider_key_from_realm,
 )
 from .coordinator import GridXCoordinator
 from .gridx_api import GridXAPI, GridXAuthenticationError
@@ -28,13 +31,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initialize data storage
     hass.data.setdefault(DOMAIN, {})
 
-    # Create API client
+    provider = PROVIDERS.get(entry.data.get(CONF_PROVIDER, ""))
+    client_id = (
+        provider.client_id
+        if provider
+        else entry.data.get(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
+    )
+    realm = (
+        provider.realm
+        if provider
+        else entry.data.get(CONF_REALM, DEFAULT_REALM)
+    )
+
+    # Create API client. Legacy/custom entries without a provider retain their
+    # explicitly stored Auth0 credentials.
     api = GridXAPI(
         hass,
         entry.data["username"],
         entry.data["password"],
-        entry.data.get(CONF_CLIENT_ID, DEFAULT_CLIENT_ID),
-        entry.data.get(CONF_REALM, DEFAULT_REALM),
+        client_id,
+        realm,
         entry.data.get(CONF_AUDIENCE, DEFAULT_AUDIENCE),
     )
 
@@ -61,17 +77,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Migrate legacy Auth0 audience settings to the gridX API audience."""
-    if entry.version > 2:
+    """Migrate legacy Auth0 settings to provider-based configuration."""
+    if entry.version > 3:
         return False
 
-    if entry.version < 2:
-        data = dict(entry.data)
-        if data.get(CONF_AUDIENCE) in (None, LEGACY_AUDIENCE):
-            data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
-        data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
-        data.setdefault(CONF_REALM, DEFAULT_REALM)
-        hass.config_entries.async_update_entry(entry, data=data, version=2)
+    data = dict(entry.data)
+    if data.get(CONF_AUDIENCE) in (None, LEGACY_AUDIENCE):
+        data[CONF_AUDIENCE] = DEFAULT_AUDIENCE
+    data.setdefault(CONF_CLIENT_ID, DEFAULT_CLIENT_ID)
+    data.setdefault(CONF_REALM, DEFAULT_REALM)
+
+    if data.get(CONF_PROVIDER) not in PROVIDERS:
+        provider_key = provider_key_from_realm(data.get(CONF_REALM))
+        if provider_key:
+            data[CONF_PROVIDER] = provider_key
+
+    hass.config_entries.async_update_entry(entry, data=data, version=3)
 
     return True
 

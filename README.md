@@ -1,4 +1,4 @@
-# Home Assistant Viessmann Gridbox Integration works with EON
+# gridX Home Assistant Integration für E.ON Home, Viessmann GridBox und weitere Portale
 **Not an official Viessmann/ EON Integration**
 <p><a href="https://my.home-assistant.io/redirect/config_flow_start?domain=gridx" class="my badge" target="_blank"><img src="https://my.home-assistant.io/badges/config_flow_start.svg"></a></p>
 
@@ -11,14 +11,28 @@ Diese Integration ruft die PV-Anlagendaten ueber die GridX-API ab. Die Anlagedat
 
 ## Authentifizierung
 
-Die Integration verwendet den aktuellen E.ON-Home-/gridX-Auth0-Flow. Seit der
-Umstellung des Webportals wird der Token fuer die Audience
+Bei der Einrichtung wird das Portal ausgewählt, bei dem das gridX-Konto
+registriert ist. Die Integration ordnet die passende Auth0-`client_id` und den
+`realm` automatisch zu. Unterstützt werden die öffentlich in der
+gridX-Webanwendung geführten Portale:
+
+**1KOMMA5°**, **Bdl Next**, **EFA-Home**, **EGS**, **empavo**, **enviaM**,
+**E.ON FEH (NL)**, **E.ON Home Manager**, **EVM**, **EWV**, **Giedorf**,
+**Greenblocks**, **Heimwatt**, **hemos**, **IBC HomeOne Hub**, **KlarSolar**,
+**LEW**, **Octopus Energy**, **PV Green**, **sonnen**,
+**Stadtwerke Norderstedt**, **upVolt** und **Zero 1**.
+
+Migrierte Viessmann-GridBox-Konten wählen **E.ON Home Manager**. Der frühere
+Viessmann-Realm ist nur noch als Legacy-Eintrag gekennzeichnet.
+
+Die Integration verwendet den aktuellen gridX-Auth0-Flow. Seit der Umstellung
+des Webportals wird der Token fuer die Audience
 `https://api.gridx.de` angefordert und der `access_token` als Bearer-Token
 verwendet. Refresh-Tokens werden automatisch erneuert. Bestehende Eintraege
 mit der frueheren Audience `my.gridx` werden beim Update automatisch migriert.
-Der Password-Realm-Grant, die E.ON-Client-ID und der Realm selbst sind
-unveraendert. Stand der Pruefung: 30. August 2026, anhand der oeffentlichen
-Konfiguration unter <https://homeone.gridx.de/> (Thx alexmsenger).  
+Der Password-Realm-Grant ist unveraendert. Stand der Pruefung: 30. August 2026,
+anhand der oeffentlichen Konfiguration unter <https://homeone.gridx.de/>
+(Thx alexmsenger).
 
 ## Energiezaehler
 

@@ -6,7 +6,7 @@ import importlib.util
 from pathlib import Path
 import sys
 from types import ModuleType
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import patch
 
 
@@ -26,6 +26,9 @@ sys.modules[spec.name] = api_module
 spec.loader.exec_module(api_module)
 
 GridXAPI = api_module.GridXAPI
+const_module = sys.modules[f"{PACKAGE_NAME}.const"]
+PROVIDERS = const_module.PROVIDERS
+provider_key_from_realm = const_module.provider_key_from_realm
 
 
 class FakeResponse:
@@ -72,16 +75,37 @@ class FakeSession:
         return self.get_responses.pop(0)
 
 
-def make_api(audience="my.gridx"):
+def make_api(
+    audience="my.gridx",
+    client_id="mG0Phmo7DmnvAqO7p6B0WOYBODppY3cc",
+    realm="eon-home-authentication-db",
+):
     """Create an API instance with E.ON Home test credentials."""
     return GridXAPI(
         None,
         "user@example.com",
         "secret",
-        "mG0Phmo7DmnvAqO7p6B0WOYBODppY3cc",
-        "eon-home-authentication-db",
+        client_id,
+        realm,
         audience,
     )
+
+
+class GridXProviderTests(TestCase):
+    """Verify the public gridX provider catalog."""
+
+    def test_catalog_contains_unique_provider_credentials(self):
+        self.assertEqual(len(PROVIDERS), 24)
+        self.assertEqual(len({item.client_id for item in PROVIDERS.values()}), 24)
+        self.assertEqual(len({item.realm for item in PROVIDERS.values()}), 24)
+
+    def test_existing_eon_realm_migrates_to_default_provider(self):
+        self.assertEqual(
+            provider_key_from_realm("eon-home-authentication-db"), "eon_home"
+        )
+
+    def test_unknown_realm_remains_a_legacy_custom_configuration(self):
+        self.assertIsNone(provider_key_from_realm("custom-authentication-db"))
 
 
 class GridXAuthenticationTests(IsolatedAsyncioTestCase):
@@ -118,6 +142,30 @@ class GridXAuthenticationTests(IsolatedAsyncioTestCase):
         self.assertEqual(
             session.requests[1][2]["Authorization"], "Bearer api-access-token"
         )
+
+    async def test_non_eon_provider_credentials_are_forwarded(self):
+        provider = PROVIDERS["ibc_homeone"]
+        session = FakeSession(
+            post_responses=[
+                FakeResponse(
+                    200,
+                    {"access_token": "api-access-token", "expires_in": 3600},
+                )
+            ]
+        )
+        api = make_api(
+            "https://api.gridx.de",
+            client_id=provider.client_id,
+            realm=provider.realm,
+        )
+
+        with patch.object(api_module.aiohttp, "ClientSession", return_value=session):
+            await api.authenticate()
+
+        login_payload = session.requests[0][2]
+        self.assertEqual(login_payload["client_id"], provider.client_id)
+        self.assertEqual(login_payload["realm"], provider.realm)
+        self.assertEqual(login_payload["audience"], "https://api.gridx.de")
 
     async def test_expired_access_token_is_refreshed(self):
         session = FakeSession(

@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit gridX verbinden",
+        "description": "Wähle das Portal, bei dem dein gridX-Konto registriert ist. Migrierte Viessmann-GridBox-Konten verwenden E.ON Home Manager.",
+        "data": {
+          "provider": "Anbieterportal",
+          "username": "E-Mail-Adresse",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "auth_failed": "Die Anmeldung ist fehlgeschlagen. Prüfe das ausgewählte Portal und deine Zugangsdaten."
+    }
+  }
+}
