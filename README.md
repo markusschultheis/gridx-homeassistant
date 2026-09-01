@@ -1,5 +1,5 @@
 # gridX Home Assistant Integration für E.ON Home, Viessmann GridBox und weitere Portale
-**Not an official Viessmann/ EON Integration**
+**Not an official GridX / Viessmann/ EON Integration**
 <p><a href="https://my.home-assistant.io/redirect/config_flow_start?domain=gridx" class="my badge" target="_blank"><img src="https://my.home-assistant.io/badges/config_flow_start.svg"></a></p>
 
 
