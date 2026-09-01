@@ -6,7 +6,7 @@
 # Konkretes Anwendungsbeispiel
 Im Haushalt ist ein Viessmann Wechselrichter, sowie eine Luftwaermepumpe installiert. Diese Geraete sind mit einer GridX-Box verbunden. 
 
-# Viessmann GridX Integration: Was macht die Integration?
+# gridX Integration: Was macht die Integration?
 Diese Integration ruft die PV-Anlagendaten ueber die GridX-API ab. Die Anlagedaten werden dann in Home Assistant zur weiteren Ver-/Bearbeitung zur Verfuegung gestellt. 
 
 ## Authentifizierung
