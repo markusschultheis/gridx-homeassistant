@@ -1,0 +1,22 @@
+gridx-homeassistant
+Copyright 2025-2026 Markus Schultheis
+
+Third-party notices
+-------------------
+
+Portions of the provider catalog and provider selection are adapted from:
+
+    ha-gridx
+    Copyright 2026 Christian Lackas
+    https://github.com/lackas/ha-gridx
+
+Those portions are licensed under the Apache License, Version 2.0. A copy of
+that license is provided in LICENSES/Apache-2.0.txt.
+
+The adapted portions were modified in 2026 for gridx-homeassistant, including
+integration into its existing authentication client, configuration-entry
+migration, labels, translations, validation, and documentation. Provider
+values were additionally verified against the public gridX web application.
+
+All remaining original portions of gridx-homeassistant are licensed under the
+MIT License in the repository's LICENSE file.

@@ -36,6 +36,10 @@ class Provider:
 
 DEFAULT_PROVIDER: Final = "eon_home"
 
+# Portions Copyright 2026 Christian Lackas, licensed under Apache-2.0.
+# The provider model and catalog are adapted from ha-gridx and were modified
+# for this integration in 2026. See NOTICE and LICENSES/Apache-2.0.txt. The
+# values were independently verified against the public gridX web application.
 # Public Auth0 settings embedded in the multi-tenant gridX web application at
 # https://homeone.gridx.de/. All providers use AUTH_URL, DEFAULT_AUDIENCE and
 # AUTH_SCOPE; only client_id and realm differ. Internal gridX POC realms are

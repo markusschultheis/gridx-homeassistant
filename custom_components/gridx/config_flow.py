@@ -21,6 +21,9 @@ from .gridx_api import GridXAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# Portions Copyright 2026 Christian Lackas, licensed under Apache-2.0.
+# The provider selector is adapted from ha-gridx and was modified for this
+# integration in 2026. See NOTICE and LICENSES/Apache-2.0.txt.
 def _provider_selector() -> SelectSelector:
     """Return a dropdown containing every known gridX customer portal."""
     options = [
